@@ -249,11 +249,8 @@ sudo systemctl status dreamhost-dyndns.timer
 
 ### IP Detection
 The script uses multiple external services for IP detection:
-1. `ipv4.icanhazip.com`
-2. `api.ipify.org`
-3. `checkip.amazonaws.com`
-4. `ipecho.net/plain`
-5. `owljet.com/ip`
+1. `checkip.amazonaws.com`
+2. `owljet.com/ip`
 
 If all services fail, the script will exit with an error.
 
