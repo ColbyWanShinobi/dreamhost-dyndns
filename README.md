@@ -94,8 +94,14 @@ chmod +x dreamhost-dyndns.sh
 # Preview changes without making them (recommended first run)
 ./dreamhost-dyndns.sh --dry-run
 
-# Execute DNS updates
+# Execute DNS updates (with confirmation prompt)
 ./dreamhost-dyndns.sh
+
+# Execute DNS updates without prompts (for automation/cron)
+./dreamhost-dyndns.sh --quiet
+
+# Combine options: preview in quiet mode (useful for testing automation)
+./dreamhost-dyndns.sh --quiet --dry-run
 ```
 
 ### Example Workflow
@@ -111,10 +117,20 @@ chmod +x dreamhost-dyndns.sh
 # SKIP: A www.example.com → 192.168.1.100 (already correct)
 # SUMMARY: 1 API calls needed
 
-# 2. If the changes look correct, run without --dry-run
+# 2. Interactive mode (prompts for confirmation)
 ./dreamhost-dyndns.sh
-# Will prompt for confirmation before making changes
+# Will prompt: "Proceed with these changes? (y/N):"
+
+# 3. Automated mode (no prompts - for cron jobs)
+./dreamhost-dyndns.sh --quiet
+# Runs automatically without user interaction
 ```
+
+### Automation vs Interactive Modes
+
+- **Interactive Mode** (default): Prompts for confirmation before making changes
+- **Quiet Mode** (`--quiet`): Runs without prompts, suitable for cron jobs and automation
+- **Dry Run Mode** (`--dry-run`): Shows what would happen without making any changes
 
 ## 📖 Understanding the Output
 
@@ -177,14 +193,17 @@ For automatic updates, add to your crontab:
 # Edit crontab
 crontab -e
 
-# Run every 30 minutes
-*/30 * * * * /path/to/dreamhost-dyndns/dreamhost-dyndns.sh >/dev/null 2>&1
+# Run every 30 minutes (quiet mode for automation)
+*/30 * * * * /path/to/dreamhost-dyndns/dreamhost-dyndns.sh --quiet >/dev/null 2>&1
 
-# Run every hour with logging
-0 * * * * /path/to/dreamhost-dyndns/dreamhost-dyndns.sh >> /var/log/dyndns.log 2>&1
+# Run every hour with logging (quiet mode)
+0 * * * * /path/to/dreamhost-dyndns/dreamhost-dyndns.sh --quiet >> /var/log/dyndns.log 2>&1
 
-# Run daily at 2 AM
-0 2 * * * /path/to/dreamhost-dyndns/dreamhost-dyndns.sh
+# Run daily at 2 AM (quiet mode)
+0 2 * * * /path/to/dreamhost-dyndns/dreamhost-dyndns.sh --quiet
+
+# Run with dry-run first, then actual update (advanced setup)
+*/30 * * * * /path/to/dreamhost-dyndns/dreamhost-dyndns.sh --dry-run && /path/to/dreamhost-dyndns/dreamhost-dyndns.sh --quiet
 ```
 
 ### Systemd Timer (Alternative)
@@ -205,7 +224,7 @@ After=network.target
 Type=oneshot
 User=your_username
 WorkingDirectory=/path/to/dreamhost-dyndns
-ExecStart=/path/to/dreamhost-dyndns/dreamhost-dyndns.sh
+ExecStart=/path/to/dreamhost-dyndns/dreamhost-dyndns.sh --quiet
 ```
 
 ```bash

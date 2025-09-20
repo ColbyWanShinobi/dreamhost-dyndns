@@ -16,6 +16,7 @@ USAGE:
 OPTIONS:
     --help, -h      Show this help message
     --dry-run, -n   Show what changes would be made without executing them
+    --quiet, -q     Run without prompts (suitable for cron jobs)
 
 FILES:
     .env            Configuration file containing DREAMHOST_API_KEY
@@ -41,6 +42,7 @@ BEHAVIOR:
 EXAMPLES:
     $0                  # Update DNS records (interactive)
     $0 --dry-run        # Preview changes without making them
+    $0 --quiet          # Update DNS records without prompts (for cron)
     $0 --help           # Show this help
 
 PREREQUISITES:
@@ -71,12 +73,29 @@ if [[ "$1" == "--help" || "$1" == "-h" ]]; then
     exit 0
 fi
 
-# Check for dry-run mode
+# Check for flags
 DRY_RUN=false
-if [[ "$1" == "--dry-run" || "$1" == "-n" ]]; then
-  DRY_RUN=true
-  echo "=== DRY RUN MODE - NO CHANGES WILL BE MADE ==="
-fi
+QUIET_MODE=false
+
+for arg in "$@"; do
+    case $arg in
+        --dry-run|-n)
+            DRY_RUN=true
+            echo "=== DRY RUN MODE - NO CHANGES WILL BE MADE ==="
+            ;;
+        --quiet|-q)
+            QUIET_MODE=true
+            ;;
+        *)
+            # Unknown argument
+            if [[ $arg == --* ]]; then
+                echo "Unknown option: $arg"
+                echo "Use --help for usage information."
+                exit 1
+            fi
+            ;;
+    esac
+done
 
 SCRIPTLINK=$(readlink -f "$0")
 SCRIPTDIR=$(dirname "${SCRIPTLINK}")
@@ -242,10 +261,14 @@ if [ "$DRY_RUN" = true ]; then
   exit 0
 fi
 
-read -p "Proceed with these changes? (y/N): " confirm
-if [[ $confirm != [yY] ]]; then
-  echo "Cancelled."
-  exit 0
+if [ "$QUIET_MODE" = true ]; then
+  echo "QUIET MODE: Proceeding with ${total_changes} API calls without confirmation."
+else
+  read -p "Proceed with these changes? (y/N): " confirm
+  if [[ $confirm != [yY] ]]; then
+    echo "Cancelled."
+    exit 0
+  fi
 fi
 
 echo -e "\n=== EXECUTING CHANGES ==="
